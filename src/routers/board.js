@@ -9,7 +9,7 @@ const User = require('../models/user')
 var Board= require('../models/board')
 var Comment = require('../models/comment')
 
-router.get('/',async(req,res,next)=>{
+router.get('/',auth,async(req,res,next)=>{
    
     Board.find({}).
         populate('author').exec(async(err,board)=>{
@@ -26,7 +26,7 @@ router.get('/',async(req,res,next)=>{
     })
 })
 //Board Write page
-router.get('/write',(req,res,next)=>{
+router.get('/write',auth,(req,res,next)=>{
     res.render('write',{title:'New Article', name:"Sarah Song"})
 })
 // function getFormatDate(date){
@@ -38,7 +38,7 @@ router.get('/write',(req,res,next)=>{
 //     return year+'-'+month+'-'+day
     
 //Post Write
-router.post('/post_write',async (req,res,next)=>{
+router.post('/post_write',auth,async (req,res,next)=>{
     var auth_token= req.cookies.auth_token
     const user=await User.findByToken(auth_token)
     var board = new Board();
@@ -62,7 +62,7 @@ router.post('/post_write',async (req,res,next)=>{
     //     })
 })
 //Link click 시 해당 board 게시물로 가기
-router.get('/:id',async(req,res)=>{
+router.get('/:id',auth,async(req,res)=>{
    await Board.findOne({_id:req.params.id})
         .populate('author').exec(async(err,board)=>{
             if(err) return res.send(err)
