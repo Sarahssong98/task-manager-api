@@ -22,7 +22,6 @@ app.use(bodyParser.json());
 const publicDir=path.join(__dirname,'../public')
 //Define path for handlebars
 const viewsPath=path.join(__dirname,'../templates/views')
-const port = process.env.PORT
 const partialPath=path.join(__dirname,'../templates/partials')
 //set up handlebars engine and views location
 app.set('view engine', 'ejs')//hbs가 템플릿엔진임
