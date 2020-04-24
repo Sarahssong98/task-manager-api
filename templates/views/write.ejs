@@ -5,18 +5,20 @@
 </head>
 <body>
 <%- include('../partials/header') %>
-    <p>Express your thoughts!</p>
+<div class="jumbotron">
     <form action="/board/post_write" method="post">
-        제목:
         <div class="form-group">
-            <label for="formGroupExampleInput">Name</label>
+            <label for="formGroupExampleInput">제목</label>
             <input type="text" name="title" class="form-control" id="formGroupExampleInput" >
-          </div>
+        </div>
           <br>
-        내용<br>
-         <textarea name="content" rows="20"></textarea><br>
-         <button type="submit" class="btn btn-primary">확인</button>
+        <div class="form-group">
+            <label for="comment">내용</label>
+            <textarea class="form-control" name="content" rows="20" id="comment"></textarea>
+          </div>
+         <textarea name="content" rows="20" cols="30"></textarea><br>
     </form>
+</div>
 <%- include('../partials/footer') %>
 <script 
 src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
