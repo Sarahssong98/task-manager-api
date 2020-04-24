@@ -1,14 +1,24 @@
 <head>
     <title>Board</title>
     <link rel="icon" href="/img/weather.png">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
 </head>
+<body>
 <%- include('../partials/header') %>
     <p>Express your thoughts!</p>
     <form action="/board/post_write" method="post">
-        제목: <input type="text" name="title"><br>
+        제목:
+        <div class="form-group">
+            <label for="formGroupExampleInput">Name</label>
+            <input type="text" name="title" class="form-control" id="formGroupExampleInput" >
+          </div>
+          <br>
         내용<br>
          <textarea name="content" rows="20"></textarea><br>
-        <input type="submit" value="확인">
+         <button type="submit" class="btn btn-primary">확인</button>
     </form>
 <%- include('../partials/footer') %>
+<script 
+src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+</body>
