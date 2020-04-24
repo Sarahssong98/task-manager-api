@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Tasks</title>
+    <link rel="icon" href="/img/weather.png">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="main-content">
+        <%- include('../partials/header') %>
+        <button id="see_task"><a href="/tasks/me">My Task</a></button>
+       <button id="add_task"><a href="/tasks/new">Add Task</a></button>
+       <button>Update Task</button>
+       <button><a href="/tasks/delete">Delete Task</a></button>
+       <div class="content" id="content">
+         <p id="task1"></p>
+         <p id="task2"></p>
+         <p id="task3"></p>
+         <p id="task4"></p>
+         <p id="task5"></p>
+         
+         
+       </div>
+    </div>
+    
+    <%- include('../partials/footer') %>
+</body>
+
+</html>

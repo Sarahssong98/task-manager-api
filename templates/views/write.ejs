@@ -1,0 +1,14 @@
+<head>
+    <title>Board</title>
+    <link rel="icon" href="/img/weather.png">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<%- include('../partials/header') %>
+    <p>Express your thoughts!</p>
+    <form action="/board/post_write" method="post">
+        제목: <input type="text" name="title"><br>
+        내용<br>
+         <textarea name="content" rows="20"></textarea><br>
+        <input type="submit" value="확인">
+    </form>
+<%- include('../partials/footer') %>

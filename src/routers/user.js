@@ -1,9 +1,17 @@
 const express = require('express')
+const app=require('express')()
 const router=new express.Router()
 const User=require('../models/user')
 const auth = require('../middleware/auth')
 const multer = require('multer')
 const sharp = require('sharp')
+const jwt=require('jsonwebtoken')
+var bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const path = require('path')
+app.use(bodyParser.json());
+app.use(cookieParser());
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
 const transport = require('../emails/nodemail')
 const welcomeMailOption= (email,name)=> ({
     from:"thdguswn989@gmail.com",
@@ -27,22 +35,34 @@ const upload = multer ({
         cb(undefined,true)
     }
 })
+router.get('',async(req,res)=>{
+    res.render('signup',{
+        title:'Sign Up',
+        name:'Sarah song',
+    })
+})
 //generate authentication token 
-router.post('/users', async (req,res)=>{
+router.post('', async (req,res)=>{
     //req=보낸 정보
     const user = new User(req.body)
     try{
          await user.save()
+         const token = await user.generateAuthToken()
          transport.sendMail(welcomeMailOption(user.email,user.name), (err,info)=>{
             if(err){
                 console.log("node mailer email error"+err)
             }
-        })
-         const token = await user.generateAuthToken()
-         res.status(201).send({user,token})
+            res.cookie('auth_token', token)
+            //res.sendFile(path.resolve(__dirname, '..', 'views', 'private.html'))
+            res.render("success",{
+                 title:'Success',
+            name:'Sarah song',
+            successMessage:'Thank you for joining our website'
+            })
+         })
     //if the function above does not work, the code below does not work
     }catch(e){
-        res.status(400).send(e)
+        res.send("Sign up Failed. Check your information once again.")
     }
     // user.save().then(()=>{
     //     res.status(201).send(user)
@@ -52,19 +72,23 @@ router.post('/users', async (req,res)=>{
     //     //res.status(400).send(error)와 같은 의미
     // })
 })
-router.post('/users/login',async(req,res)=>{
+router.post('/login',urlencodedParser,async(req,res)=>{
     try{//take in email, password(req.body) -> find it 
         const user = await User.findByCredentials(req.body.email,req.body.password)
         //have access to user
         //generate a token for the user 
         const token = await user.generateAuthToken()
-        res.send({user,token})
+        res.cookie('auth_token', token)
+        //res.sendFile(path.resolve(__dirname, '..', 'views', 'private.html'))
+        var string = encodeURIComponent(user.name);
+      res.redirect('/?valid=' + string);
     }catch(e){
-        res.status(400).send()
+        res.send("Login Failed. Check your information once again.")
+        console.log(e)
     }
 })
 //logging out : have to be authenticated to log out
-router.post('/users/logout',auth, async (req,res)=>{
+router.post('/logout',auth, async (req,res)=>{
     //get authentication token 
     try{
         //removing the token from the token array
@@ -72,13 +96,13 @@ router.post('/users/logout',auth, async (req,res)=>{
             return token.token!==req.token //같은것만 삭제하기
         })
         await req.user.save()//user 정보 저장
-        res.send()
+        res.redirect('/')
     }catch(e){
         res.status(500).send()
     }
 })
 //logging out all of the sessions
-router.post('/users/logoutAll',auth,async(req,res)=>{
+router.post('/logoutAll',auth,async(req,res)=>{
     try{
         req.user.tokens=[]
         await req.user.save()
@@ -87,7 +111,7 @@ router.post('/users/logoutAll',auth,async(req,res)=>{
         res.status(500).send()
     }
 })
-router.post('/users/me/avatar',auth, upload.single('avatars'),async(req,res)=>{
+router.post('/me/avatar',auth, upload.single('avatars'),async(req,res)=>{
     const buffer = await sharp(req.file.buffer).resize({width:250,height:250}).png().toBuffer()
     req.user.avatar = buffer
     await req.user.save()
@@ -95,33 +119,50 @@ router.post('/users/me/avatar',auth, upload.single('avatars'),async(req,res)=>{
 }, (error,req,res,next)=>{
     res.status(400).send()
 })
-router.delete('/users/me/avatar',auth,async(req,res)=>{
+router.delete('/me/avatar',auth,async(req,res)=>{
     req.user.avatar = undefined
     await req.user.save()
-    res.send()
+    res.render('success',{
+        title:'Success',
+        name:'Sarah song',
+        successMessage:'Thank you. Bye.'
+    })
 }, (error,req,res,next)=>{
     res.status(400).send()
 })
-router.get('/users/:id/avatar',async(req,res)=>{
+//user의 프로필 보여주기
+// router.get('/:id/avatar',async(req,res)=>{
+//     try{
+//         const user = await User.findById(req.params.id)
+//         if(!user||!user.avatar){
+//             throw new Error()
+//         }
+//         res.set('Content-Type','image/png')
+//         res.send(user.avatar)
+//     }catch(e){
+//         res.status(404).send()
+//     }
+// })
+
+router.get('/me',auth,async (req,res)=>{
     try{
-        const user = await User.findById(req.params.id)
-        if(!user||!user.avatar){
-            throw new Error()
-        }
-        res.set('Content-Type','image/png')
-        res.send(user.avatar)
-    }catch(e){
-        res.status(404).send()
-    }
-})
-router.get('/users/me',auth,async (req,res)=>{
-   res.send(req.user)
-    // User.find({}).then((users)=>{
-    //     //when success, users are accessable
-    //     res.send(users)
-    // }).catch((error)=>{
-    //     res.status(500).send()
-    // })
+        var auth_token= req.cookies.auth_token
+    const user=await User.findByToken(auth_token)
+    // if(!user||!user.avatar){
+    //     throw new Error("There is no user")
+    // }
+    res.render('profile',{
+        name:"Sarah Song",
+        title:"Profile",
+       user_name:user[0].name,
+        age:user[0].age,
+        email:user[0].email,
+        id:user[0].id
+
+    })
+}catch(e){
+    res.status(404).send(e)
+}
 })
 //id is dynamic->route parameters : id value=req.params
 // router.get('/users/:id',async(req,res)=>{
@@ -178,33 +219,34 @@ router.get('/users/me',auth,async (req,res)=>{
 //         res.send(400).send()
 //     }
 // })
-
+router.get('/update',auth,async(req,res)=>{
+    var auth_token= req.cookies.auth_token
+    const user=await User.findByToken(auth_token)
+    res.render('update_user',{
+            name:user[0].name,
+            age:user[0].age,
+            title:"Update Profile"
+    })
+})
 //update only own profile
-router.patch('/users/me', auth, async (req, res) => {
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['name', 'email', 'password', 'age']
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
-
-    if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' })
-    }
-
-    try {
-        const user = await User.findById(req.user._id)
-        updates.forEach((update) => user[update] = req.body[update])
-        await user.save()
-
-        if (!user) {
-            return res.status(404).send()
+router.post('/updateSend', auth, async (req, res) => {
+        try {
+            var auth_token= req.cookies.auth_token
+            const user=await User.findByToken(auth_token)
+            User.findOneAndUpdate({_id:user[0]._id},{$set:{name:req.body.name, age:req.body.age}},(err,user)=>{
+                res.render('success',{
+                    title:'Success',
+                    name:'Sarah song',
+                    successMessage:'Your profile has been successfully updated'
+                })
+            })
+           
+        } catch (e) {
+            res.status(400).send(e)
         }
-
-        res.send(user)
-    } catch (e) {
-        res.status(400).send(e)
-    }
 })
 //remove own user profile
-router.delete('/users/me',auth, async (req,res)=>{
+router.post('/delete',auth, async (req,res)=>{
     try{
         // const user=await User.findByIdAndDelete(req.user._id)
         // if(!user){
@@ -217,7 +259,11 @@ router.delete('/users/me',auth, async (req,res)=>{
                 console.log("node mailer email error"+err)
             }
         })
-        res.send(req.user)
+        res.render('success',{
+            title:'Remove success',
+            name:'Sarah song',
+            successMessage:'Your profile has been successfully removed'
+        })
     }catch(e){
         console.log(e)
         res.status(500).send()

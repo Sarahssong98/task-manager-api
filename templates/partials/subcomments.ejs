@@ -1,0 +1,18 @@
+<p class="lead"><%=comment[i].author.name%></p>
+<p><%=comment[i].content%></p>
+<form style="display:inline;" method="post" action="/board/comment/reply">
+ <button type="submit"  class="btn btn-secondary btn-sm">Reply</button>
+ <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+ <input type="hidden" name="board_id" value="<%=board._id%>">
+</form>
+ <form style="display:inline;" method="post" action="/board/comment/update">
+     <button type="submit"  class="btn btn-secondary btn-sm">Edit</button>
+     <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+     <input type="hidden" name="board_id" value="<%=board._id%>">
+ </form>
+ <form style="display:inline;" method="post" action="/board/comment/delete">
+     <button type="submit"  class="btn btn-secondary btn-sm">Delete</button>
+     <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+     <input type="hidden" name="board_id" value="<%=board._id%>">
+ </form>
+ <hr id="comment_line">

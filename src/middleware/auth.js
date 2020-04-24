@@ -1,10 +1,12 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 //set up authentication middleware
+
 const auth = async (req,res,next)=>{
     //validates the user
    try{
-        const token = req.header('Authorization').replace('Bearer ','')
+       console.log(req.body)
+       const token = req.cookies['auth_token']
         //ensure token is valid: use the secret message
         const decoded = jwt.verify(token,process.env.JWT_SECRET)
         //is the token in the token array? (= logined?)

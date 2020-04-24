@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Profile</title>
+    <link rel="icon" href="/img/weather.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="main-content">
+        <%- include('../partials/header') %>
+        <div class="jumbotron">
+       
+            <h1 class="display-4"><%=name%></h1>
+            <p class="lead">Age: <%=age%> <br> Email:<%=email%></p>
+            <hr class="my-4">
+            <div class="options">
+                <form method="get" action="/users/update" style="display:inline; margin:5px;">
+                    <button id="update"  class="btn btn-info" >Update Profile</button>
+              </form>
+                <form class="logout" method="post" action="/users/logout" style="display:inline; margin:5px;">
+                     <button id="logout"  class="btn btn-info">Logout</button>
+                </form>
+                
+                 <form class ="delete" method="post" action="/users/delete" style="display:inline; margin:5px;">
+                     <button id="delete"  class="btn btn-info">Delete</button>
+                </form>
+                
+            </div>
+            <p class="lead">
+            </p>
+        </div>
+       
+    </div>
+    
+    <%- include('../partials/footer') %>
+    <script 
+    src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+</body>
+
+</html>

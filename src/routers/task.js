@@ -1,7 +1,18 @@
 const express = require('express')
+const app=require('express')()
+const app_=express()
+const bodyParser=require('body-parser')
+app_.use(bodyParser.json())
 const router=new express.Router()
 const Task=require('../models/task')
+const User = require('../models/user')
 const auth=require('../middleware/auth')
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+String.prototype.toObjectId = function() {
+  var ObjectId = (require('mongoose').Types.ObjectId);
+  return new ObjectId(this.toString());
+};
 //GET /tasks?completed=false
 //GET /tasks?limit=10&skip=0
 //GET /tasks?sortBy=createdAt:desc
@@ -14,6 +25,7 @@ router.get('/tasks',auth,async(req,res)=>{
     if(req.query.sortBy){
         const parts= req.query.sortBy.split(':')
         sort[parts[0]]= parts[1]==='desc' ? -1:1
+        //sort[parts[0]]= parts[1]==='desc' ? -1:1
     }
     try{
         //const tasks = await Task.find({_id,owner:req.user._id})
@@ -36,17 +48,33 @@ router.get('/tasks',auth,async(req,res)=>{
     //     res.status(500).send()
     // })
 })
-router.get('/tasks/:id',auth,async(req,res)=>{
-    const _id=req.params.id
-    //find by id
+
+//return user tasks
+router.get('/me',auth,async(req,res)=>{
     try{
-        //const task=await Task.findById(_id)
-        //get the task I created 
-        const task = await Task.findOne({_id,owner:req.user._id})
-         if(!task){return res.status(404).send()}
-         res.send(task)
-    }catch(e){
-        res.status(500).send
+    var auth_token= req.cookies.auth_token
+    const user=await User.findByToken(auth_token)
+    const tasks=await Task.find({owner:user[0]._id}).select('description')
+    const obj = JSON.parse(JSON.stringify(tasks))
+    // tasks=JSON.toStringify(obj)
+    res.render('tasks',{tasks:tasks})
+    // res.render('tasks',{
+    //     task1:
+    // })
+    // res.render('tasks',{
+    //     task1:tasks[0].description,
+    //     t
+    // })
+    // Task.find(({owner:user[0]._id}).lean().exec(function (err, tasks) {
+    //     return res.send(JSON.stringify(tasks));
+    // }))}
+    //find by id
+        // res.render('tasks',{
+        //     task1:
+        // })
+    }
+    catch(e){
+        res.status(500).send(e)
     }
     // Task.findById(_id).then((task)=>{
     //     if(!task){
@@ -57,7 +85,10 @@ router.get('/tasks/:id',auth,async(req,res)=>{
     //     res.status(500).send
     // })
 })
-router.patch('/tasks/:id',auth, async(req,res)=>{
+//task update
+router.post('/update',auth, async(req,res)=>{
+    var auth_token= req.cookies.auth_token
+    const user=await User.findByToken(auth_token)
     const updates=Object.keys(req.body)//take object and return array of strings
     //properties allowed to change
     const allowedUpdates=['description','completed']
@@ -72,7 +103,7 @@ router.patch('/tasks/:id',auth, async(req,res)=>{
     try{
         //update task for middleware
         //const task = await Task.findById(req.params.id)
-        const task = await Task.findOne({_id:req.params.id,owner:req.user._id})
+        const task = await Task.findOne({owner:user[0]._id})
         if(!task){
             return res.status(404).send()
         }
@@ -84,36 +115,46 @@ router.patch('/tasks/:id',auth, async(req,res)=>{
         // const task=await Task.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true})
         //no user
        
-        res.send(task)
+        res.send({task:task})
     }catch (e){
         //invalidaton
         res.send(400).send()
     }
 })
-router.delete('/tasks/:id',auth,async(req,res)=>{
+//task delete
+router.get('/delete',auth,async(req,res)=>{
     try{
+        var auth_token= req.cookies.auth_token
+        const user=await User.findByToken(auth_token)
         //const task= await Task.findByIdAndDelete(req.params.id)
-        const task = await Task.findOne({_id:req.params.id, owner:req.user._id})
+        const task = await Task.findOne({owner:user[0]._id})
         if(!task){
             res.send(404).send()
         }
-        res.send(task)
+        res.send({task})
     }catch(e){
         res.send(500).send()
     }
 })
-//task creation 시 authentication 필요 
-router.post('/tasks',auth,(req,res)=>{
+router.get('/new',auth,(req,res)=>{
+    res.render('create_task',{
+        name:"Sarah Song",
+        title:"Create new task"
+    })
+})
+//task creation 시 authentication 필요 //task create
+router.post('/new',auth,async(req,res)=>{
     //when creating new task, add the owner property
+    var auth_token= req.cookies.auth_token
+    const user=await User.findByToken(auth_token)
     const task = new Task({
-        ...req.body,//copy all of the req.body 
-        owner:req.user._id
+        description:req.body.description,//copy all of the req.body 
+        owner:user[0]._id
     })
     task.save().then(()=>{
-        res.status(201).send(task)
+        res.redirect('/tasks/me')
     }).catch((error)=>{
-        res.status(400)
-        res.send(error)
+        res.send("Task Add Fail")
     })
 })
 

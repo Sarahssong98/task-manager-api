@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Board</title>
+    <link rel="icon" href="/img/weather.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+</head>
+<body>
+<%- include('../partials/header') %>
+<div class="jumbotron">
+       
+    <h1 class="display-4"><%=board.title%></h1>
+    <p class="lead"><%=board.author.name%></p>
+    <p class="lead"><%=board.board_date%></p>
+    <hr class="my-4">
+    <p><%=board.content%></p>
+    <br><br>
+   
+    <form action="/board/delete"  method="post" style="display:inline;float:right;margin-left:5px;" >
+        <button type="submit" class="btn btn-outline-secondary" >Delete</button>
+        <input type="hidden" name="board_id" value="<%=board._id%>">
+    </form>
+    <a href="<%=board._id%>/update"> <button type="submit" style="float:right;" class="btn btn-outline-secondary">Update</button></a>
+
+   <br>    
+<br> <hr id="content_line" class="my-3">
+    <% if(board.comments !== null){ %>
+        <% if(edit == false || edit =="false"){ %>
+            <% for(var i=0;i<comment.length;i++){%>
+                <p class="lead"><%=comment[i].author.name%></p>
+               <p><%=comment[i].content%></p>
+                <form style="display:inline;" method="post" action="/board/comment/update">
+                    <button type="submit"  class="btn btn-secondary btn-sm">Edit</button>
+                    <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+                    <input type="hidden" name="board_id" value="<%=board._id%>">
+                </form>
+                <form style="display:inline;" method="post" action="/board/comment/delete">
+                    <button type="submit"  class="btn btn-secondary btn-sm">Delete</button>
+                    <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+                    <input type="hidden" name="board_id" value="<%=board._id%>">
+                </form>
+                <hr id="comment_line">
+                <% if( comment[i]._id == update_id ){ %>
+                    <form method="post" action="/board/comment/replySend">
+                        <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+                        <input type="hidden" name="board_id" value="<%=board._id%>">
+                        <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="3" name="content"></textarea>
+                        <button type="submit"  class="btn btn-secondary btn-sm">Send</button>
+                    </form>
+                    <hr id="comment_line">
+                <%} %>
+            <%}%>
+        <%}
+        else{ %> 
+            <% for(var i=0;i < comment.length; i++){%>
+                <p class="lead"><%=comment[i].author.name%></p>
+                <% if( comment[i]._id == update_id ){ %>
+                    <form method="post" action="/board/comment/updateSend">
+                        <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+                        <input type="hidden" name="board_id" value="<%=board._id%>">
+                        <textarea rows="5" cols="20" name="update_content"><%=comment[i].content%></textarea>
+                        <button type="submit"  class="btn btn-secondary btn-sm">Update</button>
+                    </form>
+                <%} else { %>
+                    <p><%=comment[i].content%></p>
+                    <form method="post" action="/board/comment/update">
+                        <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+                        <input type="hidden" name="board_id" value="<%=board._id%>">
+                    </form>
+                <%} %>
+                <form method="post" action="/board/comment/delete">
+                    <button type="submit"  class="btn btn-secondary btn-sm">Delete</button>
+                    <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
+                    <input type="hidden" name="board_id" value="<%=board._id%>">
+                </form>
+                
+                <hr id="comment_line">
+          <%}%>
+        <%}%>
+    <%}%>
+
+
+    <form method="post" action="/board/comment/post_write">
+        <div class="form-group">
+            <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="3" name="content"></textarea>
+          </div>
+          <button type="submit"  class="btn btn-secondary btn-sm">확인</button>
+        <input type="hidden" name="id" value="<%=board._id%>" >
+    </form>
+</div>
+    <%- include('../partials/footer') %>
+    <script 
+    src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+</body>
+</html>

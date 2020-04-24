@@ -3,6 +3,8 @@ const validator=require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const Task= require('./task')
+const Board=require('./board')
+const Comment=require('./comment')
 mongoose.connect('mongodb://127.0.0.1:27017/task-manage-api',{
     useNewUrlParser:true,
     useCreateIndex:true
@@ -54,6 +56,7 @@ const userSchema = new mongoose.Schema({
             required:true
         }
     }],
+   
     avatar:{
         type:Buffer
     }
@@ -61,12 +64,19 @@ const userSchema = new mongoose.Schema({
     timestamps:true // user creat할때마다 time정보 제공(create,update시간)
 })
 //virtual property : not changing the storage data, just for relation
-userSchema.virtual('tasks',{
+userSchema.virtual('board',{
     //task model has the reference to the User 
     //helps the mongoose to understand the relationship
-    ref:'Task',
+    ref:'Board',
     localField:'_id',//where local data is stored: user id 
-    foreignField:'owner'//task
+    foreignField:'author'//task
+})
+userSchema.virtual('comment',{
+    //task model has the reference to the User 
+    //helps the mongoose to understand the relationship
+    ref:'Comment',
+    localField:'_id',//where local data is stored: user id 
+    foreignField:'author'//task
 })
 
 userSchema.methods.toJSON = function (){
@@ -82,17 +92,32 @@ userSchema.methods.generateAuthToken = async function(){
     //methods are accessible to the instances<->statics: accessible to the model
     const user = this 
     //generate a jwt
-    const token = jwt.sign({_id:user._id.toString()},process.env.JWT_SECRET)
+    const token = jwt.sign({_id:user._id.toString()},process.env.JWT_SECRET,{expiresIn: '7d'})
     user.tokens=user.tokens.concat({token:token})
     await user.save() //save token to database
 
     return token
 }
+userSchema.methods.getAvatar = async function(){
+    //methods are accessible to the instances<->statics: accessible to the model
+    const user = this 
+    var response = await fetch('/'+user.id+'/avatar')
+
+    
+}
+userSchema.statics.findByToken = async function(auth_token){
+    //methods are accessible to the instances<->statics: accessible to the model
+    const user = await User.find({"tokens.token":auth_token})
+    //generate a jwt
+     return user;
+}
 //setting a value to userSchema.statics 
 userSchema.statics.findByCredentials= async(email,password)=>{
     const user = await User.findOne({email:email})
     if(!user){
+        console.log(email)
         throw new Error('Unable to login')
+        
     }
     const isMatch = await bcrypt.compare(password,user.password)
     if(!isMatch){
