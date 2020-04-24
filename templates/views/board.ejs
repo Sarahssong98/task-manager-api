@@ -66,6 +66,7 @@
                 <%} else { %>
                     <p><%=comment[i].content%></p>
                     <form method="post" action="/board/comment/update">
+                        <button type="submit"  class="btn btn-secondary btn-sm">Edit</button>
                         <input type="hidden" name="comment_id" value="<%=comment[i]._id%>">
                         <input type="hidden" name="board_id" value="<%=board._id%>">
                     </form>
